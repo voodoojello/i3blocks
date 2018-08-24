@@ -1,0 +1,112 @@
+#!/usr/bin/perl
+#
+#-------------------------------------------------------------------------
+# meminfo scraper for i3blocks - (c)2018 Mark Page <mark@very3.net>
+# Modified: Fri Aug 24 11:39:22 2018 -0500
+#-------------------------------------------------------------------------
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-------------------------------------------------------------------------
+#
+use strict;
+use warnings;
+
+my $mid  = 25;
+my $high = 50;
+
+open(my $f,'<',"/proc/meminfo");
+chomp(my @meminfo = <$f>);
+close($f);
+
+my ($data);
+
+for my $m (0 .. (scalar(@meminfo) - 1)) {
+  $meminfo[$m] =~ s/\s+|kB//g;
+  $data->{(split(/\:/,$meminfo[$m]))[0]} = ((split(/\:/,$meminfo[$m]))[1]/1024)/1024;
+}
+
+my $percent = sprintf("%.1f",(($data->{'MemTotal'} - $data->{'MemAvailable'})/$data->{'MemTotal'})*100);
+
+my $color = "#00FF00";
+if ($percent >= $mid)  { $color = "#FFFF00"; }
+if ($percent >= $high) { $color = "#FF0000"; }
+
+if ($ARGV[0] eq 'long') {
+  print sprintf("%.1f",$data->{'MemAvailable'}).'G/'.sprintf("%.1f",$data->{'MemTotal'})."G ($percent%)\n\n";
+}
+else {
+  print "$percent%\n\n";
+}
+
+print "$color\n";
+
+exit(0);
+
+__END__
+
+use Data::Dumper;
+die (Dumper($data));
+
+$VAR1 = {
+  'Slab' => '0.152786254882812',
+  'VmallocUsed' => '0',
+  'CmaTotal' => '0',
+  'HardwareCorrupted' => '0',
+  'SwapFree' => '1.99999618530273',
+  'Writeback' => '0',
+  'HugePages_Free' => '0',
+  'AnonHugePages' => '0',
+  'DirectMap4k' => '0.174289703369141',
+  'MemFree' => '20.6007041931152',
+  'Inactive(file)' => '0.429435729980469',
+  'SwapTotal' => '1.99999618530273',
+  'MemAvailable' => '21.1236572265625',
+  'CommitLimit' => '13.7136154174805',
+  'VmallocChunk' => '0',
+  'Cached' => '1.15004730224609',
+  'Buffers' => '0.0779914855957031',
+  'Active(file)' => '0.331062316894531',
+  'Inactive' => '0.895259857177734',
+  'ShmemHugePages' => '0',
+  'WritebackTmp' => '0',
+  'HugePages_Rsvd' => '0',
+  'Inactive(anon)' => '0.465824127197266',
+  'DirectMap1G' => '18',
+  'SReclaimable' => '0.109977722167969',
+  'Bounce' => '0',
+  'Dirty' => '0.0003204345703125',
+  'Mlocked' => '0',
+  'PageTables' => '0.03765869140625',
+  'ShmemPmdMapped' => '0',
+  'Active(anon)' => '1.30851364135742',
+  'Committed_AS' => '6.1171875',
+  'MemTotal' => '23.4272422790527',
+  'SUnreclaim' => '0.0428085327148438',
+  'DirectMap2M' => '6.712890625',
+  'HugePages_Surp' => '0',
+  'HugePages_Total' => '0',
+  'SwapCached' => '0',
+  'NFS_Unstable' => '0',
+  'Unevictable' => '0',
+  'KernelStack' => '0.0076751708984375',
+  'Shmem' => '0.467548370361328',
+  'Active' => '1.63957595825195',
+  'CmaFree' => '0',
+  'VmallocTotal' => '32767.9999990463',
+  'Mapped' => '0.349689483642578',
+  'AnonPages' => '1.30682754516602',
+  'Hugepagesize' => '0.001953125'
+};
+
