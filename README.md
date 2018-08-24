@@ -1,2 +1,2 @@
-# i3blocks
-i3Blocks Scripts
+# i3blocks Scripts
+Just some i3Blocks Scripts
