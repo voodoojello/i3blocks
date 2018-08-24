@@ -2,7 +2,8 @@
 #
 #-------------------------------------------------------------------------
 # meminfo scraper for i3blocks - (c)2018 Mark Page <mark@very3.net>
-# Modified: Fri Aug 24 11:39:22 2018 -0500
+# Modified: Fri Aug 24 15:22:28 2018 -0500
+# Requires: fonts-font-awesome
 #-------------------------------------------------------------------------
 #
 # This program is free software: you can redistribute it and/or modify
