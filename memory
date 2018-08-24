@@ -44,10 +44,10 @@ if ($percent >= $mid)  { $color = "#FFFF00"; }
 if ($percent >= $high) { $color = "#FF0000"; }
 
 if ($ARGV[0] eq 'long') {
-  print sprintf("%.1f",$data->{'MemAvailable'}).'G/'.sprintf("%.1f",$data->{'MemTotal'})."G ($percent%)\n\n";
+  print '  '.sprintf("%.1f",$data->{'MemAvailable'}).'G/'.sprintf("%.1f",$data->{'MemTotal'})."G ($percent%)\n\n";
 }
 else {
-  print "$percent%\n\n";
+  print " $percent%\n\n";
 }
 
 print "$color\n";
