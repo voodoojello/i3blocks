@@ -24,6 +24,7 @@
 use strict;
 use warnings;
 use JSON;
+use Data::Dumper;
 
 my $icon_color = '#00ff00';
 
@@ -44,7 +45,7 @@ if ($data->{'user'} > 50) {
 
 
 if (defined($ARGV[0]) && $ARGV[0] eq 'long') {
-  print ' '.$data->{'user'}."%\n\n";
+  print ' '.$data->{'user'}.' / '.$data->{'nice'}.' / '.$data->{'system'}."\n\n";
 }
 else {
   print ' '.$data->{'user'}."%\n\n";
