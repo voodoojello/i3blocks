@@ -50,11 +50,11 @@ if ($percent > 0 and $percent < 25) {
 }
 if ($percent >= 25 and $percent < 50) {
   $battery_icon = '25';
-  $icon_color   = '#ffff00';
+  $icon_color   = '#ffa500';
 }
 if ($percent >= 50 and $percent < 75) {
   $battery_icon = '50';
-  $icon_color   = '#0000ff';
+  $icon_color   = '#ffff00';
 }
 if ($percent >= 75 and $percent < 100) {
   $battery_icon = '75';
