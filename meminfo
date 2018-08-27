@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+#
+#-------------------------------------------------------------------------
+# meminfo scraper for i3blocks - (c)2018 Mark Page <mark@very3.net>
+# Modified: Mon Aug 27 04:56:34 2018 -0500
+# Requires: fonts-font-awesome
+#-------------------------------------------------------------------------
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-------------------------------------------------------------------------
+#
+use strict;
+use warnings;
+
+my $mid  = 30;
+my $high = 50;
+
+open(my $f,'<',"/proc/meminfo");
+chomp(my @meminfo = <$f>);
+close($f);
+
+my ($data);
+
+for my $m (0 .. (scalar(@meminfo) - 1)) {
+  $meminfo[$m] =~ s/\s+|kB//g;
+  $data->{(split(/\:/,$meminfo[$m]))[0]} = ((split(/\:/,$meminfo[$m]))[1]/1024)/1024;
+}
+
+my $percent = sprintf("%.1f",(($data->{'MemTotal'} - $data->{'MemAvailable'})/$data->{'MemTotal'})*100);
+
+my $color = "#00ff00";
+if ($percent >= $mid)  { $color = "#ffff00"; }
+if ($percent >= $high) { $color = "#ff0000"; }
+
+if (defined($ARGV[0]) && $ARGV[0] eq 'long') {
+  print '  '.sprintf("%.1f",$data->{'MemAvailable'}).'G/'.sprintf("%.1f",$data->{'MemTotal'})."G ($percent%)\n\n";
+}
+else {
+  print " $percent%\n\n";
+}
+
+print "$color\n";
+
+exit(0);
+
+__END__
