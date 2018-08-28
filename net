@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+#
+#-------------------------------------------------------------------------
+# network info for i3blocks - (c)2018 Mark Page <mark@very3.net>
+# Modified: Tue Aug 28 13:14:38 2018 -0500
+# Requires: fonts-font-awesome
+#-------------------------------------------------------------------------
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#-------------------------------------------------------------------------
+#
+use strict;
+use warnings;
+use Data::Dumper;
+
+$Data::Dumper::Indent = 1;
+$Data::Dumper::Purity = 1;
+$Data::Dumper::Terse  = 1;
+
+my $interface  = $ENV{'BLOCK_INSTANCE'};
+my $cache_db   = './.net.db';
+my $class_path = '/sys/class/net/'.$interface.'/statistics/';
+
+my ($data);
+my ($cache);
+my ($ip);
+
+if (!stat($class_path)) {
+  exit;
+}
+
+my $ipv = 'ipv4';
+if (defined($ARGV[0])) {
+  $ipv = $ARGV[0];
+}
+
+chomp(my @ip_addr = `ip addr show $interface`);
+for my $i (0 .. (scalar(@ip_addr) - 1)) {
+  $ip_addr[$i] =~ s/\s+/ /g;
+  if ($ip_addr[$i] =~ m/inet /) {
+    $ip->{'addr'}->{'ipv4'} = (split(/\//,(split(/ /,$ip_addr[$i]))[2]))[0];
+  }
+  if ($ip_addr[$i] =~ m/inet6 /) {
+    $ip->{'addr'}->{'ipv6'} = (split(/\//,(split(/ /,$ip_addr[$i]))[2]))[0];
+  }
+}
+
+opendir(my $cp, $class_path);
+my @stats = grep {$_ ne '.' and $_ ne '..'} readdir($cp);
+closedir $cp;
+
+if (stat("$cache_db")) {
+  $cache = (do "$cache_db");
+}
+
+for my $s (0 .. (scalar(@stats) - 1)) {
+  open(my $f,'<',"$class_path/$stats[$s]");
+  chomp($data->{$stats[$s]} = ((<$f>/1024)/1024));
+  close($f);
+}
+
+$data->{'time'} = time;
+
+open(my $c,'>',"$cache_db");
+print $c Dumper($data);
+close($c);
+
+my $elapsed = $data->{'time'} - $cache->{'time'};
+
+if ($elapsed > 0) {
+  print $ip->{'addr'}->{$ipv};
+  print ' / ';
+  print ' '.sprintf("%.2f",((($data->{'tx_bytes'} - $cache->{'tx_bytes'})/$elapsed)*8));
+  print ' / ';
+  print ' '.sprintf("%.2f",((($data->{'rx_bytes'} - $cache->{'rx_bytes'})/$elapsed)*8));
+}
+
+
+__END__
