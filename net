@@ -2,7 +2,7 @@
 #
 #-------------------------------------------------------------------------
 # network info for i3blocks - (c)2018 Mark Page <mark@very3.net>
-# Modified: Tue Aug 28 13:14:38 2018 -0500
+# Modified: Wed Nov 14 05:41:10 2018 -0600
 # Requires: fonts-font-awesome
 #-------------------------------------------------------------------------
 #
@@ -30,7 +30,7 @@ $Data::Dumper::Purity = 1;
 $Data::Dumper::Terse  = 1;
 
 my $interface  = $ENV{'BLOCK_INSTANCE'};
-my $cache_db   = './.net.db';
+my $cache_db   = $ENV{'HOME'}.'/.cache/.'.$ENV{'BLOCK_INSTANCE'}.'.net.dat';
 my $class_path = '/sys/class/net/'.$interface.'/statistics/';
 
 my ($data);
