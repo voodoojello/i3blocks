@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 #
 #-------------------------------------------------------------------------
-# network info for i3blocks - (c)2018 Mark Page <mark@very3.net>
-# Modified: Wed Nov 14 05:41:10 2018 -0600
+# network info for i3blocks - (c)2019 Mark Page <mark@very3.net>
+# Modified: Wed Jul 17 13:15:51 2019 -0500
 # Requires: fonts-font-awesome
 #-------------------------------------------------------------------------
 #
@@ -13,11 +13,9 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# See the GNU General Public License: http://www.gnu.org/licenses
 #
 #-------------------------------------------------------------------------
 #
@@ -29,8 +27,14 @@ $Data::Dumper::Indent = 1;
 $Data::Dumper::Purity = 1;
 $Data::Dumper::Terse  = 1;
 
-my $cache_db   = $ENV{'HOME'}.'/.cache/.'.$ENV{'BLOCK_INSTANCE'}.'.net.dat';
-my $class_path = '/sys/class/net/'.$ENV{'BLOCK_INSTANCE'}.'/statistics/';
+my $interface  = $ENV{'BLOCK_INSTANCE'};
+my $cache_dir  = $ENV{'HOME'}.'/.cache/i3blocks/net';
+my $cache_db   = $cache_dir.'/'.$interface.'.db';
+my $class_path = '/sys/class/net/'.$interface.'/statistics/';
+
+if (!stat($cache_dir)) {
+  system("mkdir -p $cache_dir");
+}
 
 my ($data);
 my ($cache);
@@ -45,7 +49,7 @@ if (defined($ARGV[0])) {
   $ipv = $ARGV[0];
 }
 
-chomp(my @ip_addr = `ip addr show $ENV{'BLOCK_INSTANCE'}`);
+chomp(my @ip_addr = `ip addr show $interface`);
 for my $i (0 .. (scalar(@ip_addr) - 1)) {
   $ip_addr[$i] =~ s/\s+/ /g;
   if ($ip_addr[$i] =~ m/inet /) {
@@ -56,35 +60,36 @@ for my $i (0 .. (scalar(@ip_addr) - 1)) {
   }
 }
 
-opendir(my $cp, $class_path);
-my @stats = grep {$_ ne '.' and $_ ne '..'} readdir($cp);
-closedir $cp;
+if (defined($ip->{'addr'}->{'ipv4'}) or defined($ip->{'addr'}->{'ipv6'})) {
+  opendir(my $cp, $class_path);
+  my @stats = grep {$_ ne '.' and $_ ne '..'} readdir($cp);
+  closedir $cp;
 
-if (stat("$cache_db")) {
-  $cache = (do "$cache_db");
+  if (stat("$cache_db")) {
+    $cache = (do "$cache_db");
+  }
+
+  for my $s (0 .. (scalar(@stats) - 1)) {
+    open(my $f,'<',"$class_path/$stats[$s]");
+    chomp($data->{$stats[$s]} = ((<$f>/1024)/1024));
+    close($f);
+  }
+
+  $data->{'time'} = time;
+
+  open(my $c,'>',"$cache_db");
+  print $c Dumper($data);
+  close($c);
+
+  my $elapsed = $data->{'time'} - $cache->{'time'};
+
+  if ($elapsed > 0) {
+    print $ip->{'addr'}->{$ipv};
+    print ' / ';
+    print ' '.sprintf("%.2f",((($data->{'tx_bytes'} - $cache->{'tx_bytes'})/$elapsed)*8));
+    print ' / ';
+    print ' '.sprintf("%.2f",((($data->{'rx_bytes'} - $cache->{'rx_bytes'})/$elapsed)*8));
+  }
 }
-
-for my $s (0 .. (scalar(@stats) - 1)) {
-  open(my $f,'<',"$class_path/$stats[$s]");
-  chomp($data->{$stats[$s]} = ((<$f>/1024)/1024));
-  close($f);
-}
-
-$data->{'time'} = time;
-
-open(my $c,'>',"$cache_db");
-print $c Dumper($data);
-close($c);
-
-my $elapsed = $data->{'time'} - $cache->{'time'};
-
-if ($elapsed > 0) {
-  print $ip->{'addr'}->{$ipv};
-  print ' / ';
-  print ' '.sprintf("%.2f",((($data->{'tx_bytes'} - $cache->{'tx_bytes'})/$elapsed)*8));
-  print ' / ';
-  print ' '.sprintf("%.2f",((($data->{'rx_bytes'} - $cache->{'rx_bytes'})/$elapsed)*8));
-}
-
 
 __END__
